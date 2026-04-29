@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../components/title.js"></script>
+    <link rel="icon" href="../../logo.png" type="image/png">
+    <title></title>
+    <style>
+        body { font-family: "Comic Sans MS", "標楷體", serif; background-color: #fffcf8; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        .container { max-width: 800px; width: 100%; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .opt { display: block; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; }
+        .opt:hover { background: #f9f9f9; }
+        .back-btn { background: #666; color: white; text-decoration: none; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; }
+        #result-section { display: none; text-align: center; margin-top: 40px; padding: 20px; border-top: 2px solid #eee; width: 100%; }
+        .view-results-btn { background: #ff6b00; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../sentence_builder.html" class="back-btn">← 返回</a>
+        <h1>✅ 多项选择题</h1>
+        <div id="quiz-container"><p class="loading">正在加载问题……</p></div>
+        
+        <div id="result-section">
+            <p id="final-score-text" style="font-size: 20px; font-weight: bold;"></p>
+            <button class="view-results-btn" onclick="saveAndGoToResults()">查看结果</button>
+        </div>
+    </div>
+
+    <script>
+        let pool = [];
+        let score = 0;
+        let answeredCount = 0;
+        let answeredQuestions = new Set();
+        
+        const currentLang = document.documentElement.lang;
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('../../data/mc.tsv');
+                const data = await response.text();
+                
+                const lines = data.trim().split('\n');
+                let allQuestions = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split('\t');
+                    if (cols.length >= 5) {
+                        let displayQ = "";
+                        
+                        if (currentLang === "zh-Hant") {
+                            displayQ = cols[1]; 
+                        } else if (currentLang === "zh-Hans") {
+                            displayQ = cols[2];
+                        } else {
+                            displayQ = cols[0];
+                        }
+
+                        allQuestions.push({
+                            q: displayQ.trim(),
+                            options: cols[3].trim().split(','),
+                            a: parseInt(cols[4].trim())
+                        });
+                    }
+                }
+
+                pool = allQuestions.sort(() => 0.5 - Math.random()).slice(0, 10);
+                renderQuiz();
+            } catch (error) {
+                console.error("Error loading TSV:", error);
+                document.getElementById('quiz-container').innerHTML = "<p style='color:red'>載入失敗</p>";
+            }
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = pool.map((q, i) => `
+                <div class="question-box" style="margin-bottom:25px;">
+                    <p><strong>Q${i+1}: ${q.q}</strong></p>
+                    ${q.options.map((option, optIdx) => `
+                        <label class="opt" id="label-${i}-${optIdx}">
+                            <input type="radio" name="q${i}" onclick="checkMC(${i}, ${optIdx}, ${q.a})"> ${option}
+                        </label>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        window.checkMC = (qIdx, choice, correct) => {
+            if (answeredQuestions.has(qIdx)) return;
+            answeredQuestions.add(qIdx);
+            answeredCount++;
+            
+            const labels = document.querySelectorAll(`[id^="label-${qIdx}-"]`);
+            labels.forEach(l => l.style.pointerEvents = "none");
+
+            if(choice === correct) {
+                score += 10;
+                document.getElementById(`label-${qIdx}-${choice}`).style.background = "#d4edda"; 
+            } else {
+                document.getElementById(`label-${qIdx}-${choice}`).style.background = "#f8d7da"; 
+                document.getElementById(`label-${qIdx}-${correct}`).style.background = "#d4edda"; 
+            }
+
+            if (answeredCount === pool.length) {
+                document.getElementById('final-score-text').innerText = `你的得分: ${score} / 100`;
+                document.getElementById('result-section').style.display = 'block';
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        };
+
+        function saveAndGoToResults() {
+            let records = JSON.parse(localStorage.getItem('All_Quiz_Records')) || [];
+            records.push({
+                type: '多项选择题',
+                score: score,
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('All_Quiz_Records', JSON.stringify(records));
+            window.location.href = "../results.html"; 
+        }
+
+        loadQuestions();
+    </script>
+</body>
+</html>

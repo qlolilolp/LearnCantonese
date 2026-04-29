@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../components/title.js"></script>
+    <link rel="icon" href="../logo.png" type="image/png">
+	<link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root {
+            --primary-orange: #ff6b00;
+            --border-color: #e0e0e0;
+            --bg-container: #ffffff;
+        }
+        body {
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 40px;
+        }
+        .quiz-header {
+            width: 90%;
+            max-width: 1100px;
+            background: #fff;
+            padding: 25px 40px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .quiz-header h2 { margin: 0; color: #002b5b; font-size: 24px; }
+        .quiz-header p { margin: 5px 0 0; color: #666; }
+        .main-container {
+            width: 90%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .input-area {
+            background: #fff;
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: 2px solid #ffddb0;
+        }
+        .input-label {
+            font-weight: bold;
+            color: #b45f2b;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        textarea {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-family: inherit;
+            border: 2px solid #ffddb0;
+            border-radius: 20px;
+            background: #fffaf5;
+            resize: vertical;
+            outline: none;
+            transition: 0.2s;
+            line-height: 1.5;
+        }
+        textarea:focus { border-color: var(--primary-orange); box-shadow: 0 0 0 3px rgba(255,107,0,0.2); }
+        .shortcut-hint {
+            font-size: 0.75rem;
+            color: #b87b44;
+            margin-top: 12px;
+            text-align: right;
+        }
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .query-btn, .clear-btn {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .query-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .query-btn:hover:not(:disabled) { background: #e05d00; transform: scale(0.97); }
+        .clear-btn {
+            background: #e9ecef;
+            color: #5a4a3a;
+        }
+        .clear-btn:hover { background: #dee2e6; }
+        .output-area {
+            background: #fff7ed;
+            border-radius: 28px;
+            padding: 30px;
+            border: 2px solid #ffdec2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .jyutping-display {
+            background: #fef2e0;
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 120px;
+        }
+        .jyutping-label {
+            font-size: 0.85rem;
+            color: #b45f2b;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .jyutping-text {
+            font-family: monospace;
+            font-size: 1.3rem;
+            line-height: 1.6;
+            word-break: break-all;
+            color: #2d2a24;
+        }
+        .play-full-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 40px;
+            transition: 0.2s;
+            color: #ff6b00;
+        }
+        .play-full-btn:hover {
+            background: #ffe6cc;
+            transform: scale(1.05);
+        }
+        .word-list-section {
+            width: 90%;
+            max-width: 1100px;
+            background: #fff7ed;
+            border-radius: 28px;
+            padding: 25px;
+            border: 2px solid #ffdec2;
+            margin-top: 0;
+        }
+        .word-list-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #b45f2b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .word-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .word-table th, .word-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #ffe0b5;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .word-table th {
+            color: #a06e3c;
+            font-weight: bold;
+            font-size: 0.9rem;
+            background: #fff5e8;
+        }
+        .word-table td {
+            font-size: 1.1rem;
+        }
+        .jyutping-chip {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.95rem;
+            display: inline-block;
+            margin-right: 8px;
+            font-family: monospace;
+            color: #444;
+        }
+        .note {
+            font-size: 0.75rem;
+            color: #b87b44;
+            background: #fff0e0;
+            border-radius: 20px;
+            padding: 10px 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+	<script src="../components/header.js"></script>
+	<script src="../components/footer.js"></script>
+	<div class="main-content">
+		<div class="quiz-header">
+			<h2>粵語拼音查詢</h2>
+			<p>輸入中文句子，獲得粵語拼音及逐詞發音</p>
+		</div>
+
+		<div class="main-container">
+			<div class="input-area">
+				<div class="input-label">請輸入中文</div>
+				<textarea id="userInput" rows="5" placeholder="例如: 我好鍾意飲奶茶"></textarea>
+				<div class="shortcut-hint">💡 快捷鍵：Ctrl+Enter 或 Alt+Enter 快速查詢</div>
+				<div class="btn-group">
+					<button class="clear-btn" id="clearBtn">🗑️ 清空</button>
+					<button class="query-btn" id="queryBtn">查詢拼音</button>
+				</div>
+			</div>
+
+			<div class="output-area">
+				<div class="jyutping-label">
+					<span>粵語拼音 (Jyutping)</span>
+					<button id="playFullBtn" class="play-full-btn" title="播放整句語音">🔊 播放</button>
+				</div>
+				<div class="jyutping-text" id="fullJyutping">等待查詢...</div>
+			</div>
+		</div>
+
+		<div class="word-list-section" id="wordListSection" style="display: none;">
+			<div class="word-list-title">詞組列表</div>
+			<table class="word-table" id="wordTable">
+				<thead>
+					<tr>
+                        <th style="width: 30%;">字詞</th>
+                        <th>粵拼（所有可能讀音）</th>
+                    </tr>
+				</thead>
+				<tbody id="wordTableBody"></tbody>
+			</table>
+			<div class="note" id="noteArea">💡 提示：基於字典最長匹配分詞，每個詞語只顯示一次，多音字列出所有讀音。</div>
+		</div>
+	</div>
+	<script>
+		let jyutpingMap = new Map();
+		let sortedTerms = [];
+		let dictLoaded = false;
+
+		async function loadDict() {
+			try {
+				const resp = await fetch('../data/duozi.tsv');
+				if (resp.ok) {
+					const text = await resp.text();
+					parseTsv(text);
+				}
+				const resp2 = await fetch('../data/danzi.tsv');
+				if (resp2.ok) {
+					const text2 = await resp2.text();
+					parseTsv(text2);
+				}
+				
+				if (jyutpingMap.size === 0) throw new Error();
+				sortedTerms = [...jyutpingMap.keys()].sort((a,b)=>b.length - a.length);
+				dictLoaded = true;
+			} catch(e) {
+				useFallbackDict();
+			}
+			document.getElementById('queryBtn').disabled = false;
+		}
+		
+		function parseTsv(text) {
+			const lines = text.split(/\r?\n/);
+			let first = true;
+			for (let line of lines) {
+				line = line.trim();
+				if (!line) continue;
+				if (first && (line.startsWith('CH') || line.includes('ch\tucode'))) { first = false; continue; }
+				const parts = line.split('\t');
+				if (parts.length >= 3) {
+					const term = parts[0];
+					const jyut = parts[2];
+					if (jyutpingMap.has(term)) {
+						let existing = jyutpingMap.get(term);
+						if (!existing.includes(jyut)) {
+							existing.push(jyut);
+							jyutpingMap.set(term, existing);
+						}
+					} else {
+						jyutpingMap.set(term, [jyut]);
+					}
+				}
+				first = false;
+			}
+		}
+		
+		function useFallbackDict() {
+			const fallback = [
+				['我', ['ngo5']], ['你', ['nei5']], ['佢', ['keoi5']], ['係', ['hai6']], ['喺', ['hai2']],
+				['好', ['hou2']], ['唔', ['m4']], ['鍾意', ['zung1 ji3']], ['食', ['sik6']], ['飲', ['jam2']],
+				['點心', ['dim2 sam1']], ['奶茶', ['naai5 caa4']], ['今日', ['gam1 jat6']], ['聽日', ['ting1 jat6']],
+				['多謝', ['do1 ze6']], ['唔該', ['m4 goi1']], ['朋友', ['pang4 jau5']], ['邊度', ['bin1 dou6']],
+				['屋企', ['uk1 kei2']], ['學校', ['hok6 haau6']],
+				['行', ['hang4', 'hong4']], ['銀行', ['ngan4 hong4']], ['行路', ['haang4 lou6']]
+			];
+			for (let [term, pinyinList] of fallback) {
+				jyutpingMap.set(term, pinyinList);
+			}
+			sortedTerms = [...jyutpingMap.keys()].sort((a,b)=>b.length - a.length);
+			dictLoaded = true;
+			document.getElementById('noteArea').innerHTML = '⚠️ 無法加載外部字典，使用內置簡易字典。';
+		}
+
+		function segmentAndConvert(str) {
+			if (!str) return { fullString: '', uniqueWords: new Map() };
+			let resultPinyinSegments = [];
+			let uniqueWords = new Map();
+			let i = 0;
+			const len = str.length;
+			
+			while (i < len) {
+				let matched = false;
+				for (let term of sortedTerms) {
+					if (str.substr(i, term.length) === term) {
+						const pinyinList = jyutpingMap.get(term);
+						if (pinyinList && pinyinList.length) {
+							resultPinyinSegments.push(pinyinList[0]);
+							if (!uniqueWords.has(term)) {
+								uniqueWords.set(term, { pinyinList: pinyinList });
+							}
+						} else {
+							resultPinyinSegments.push(`*${term}*`);
+							if (!uniqueWords.has(term)) {
+								uniqueWords.set(term, { pinyinList: [`*${term}*`] });
+							}
+						}
+						i += term.length;
+						matched = true;
+						break;
+					}
+				}
+				
+				if (!matched) {
+					const ch = str[i];
+					if (/[\u4e00-\u9fff]/.test(ch)) {
+						const pinyinList = jyutpingMap.get(ch);
+						if (pinyinList && pinyinList.length) {
+							resultPinyinSegments.push(pinyinList[0]);
+							if (!uniqueWords.has(ch)) {
+								uniqueWords.set(ch, { pinyinList: pinyinList });
+							}
+						} else {
+							resultPinyinSegments.push(`*${ch}*`);
+							if (!uniqueWords.has(ch)) {
+								uniqueWords.set(ch, { pinyinList: [`*${ch}*`] });
+							}
+						}
+					} else {
+						resultPinyinSegments.push(ch);
+					}
+					i++;
+				}
+			}
+			
+			let full = resultPinyinSegments.join(' ');
+			full = full.replace(/\s+([，,。？?！!；;：:、])/g,'$1');
+			full = full.replace(/([，,。？?！!；;：:、])\s+/g,'$1 ');
+			full = full.trim().replace(/\s+/g,' ');
+			return { fullString: full, uniqueWords: uniqueWords };
+		}
+
+		function speak(text) {
+			let utterance = new SpeechSynthesisUtterance(text);
+			utterance.lang = 'zh-HK';
+			utterance.rate = 1;
+			window.speechSynthesis.speak(utterance);
+		}
+
+		async function query() {
+			if (!dictLoaded) return;
+			let input = document.getElementById('userInput').value.trim();
+			if (!input || !/[\u4e00-\u9fff]/.test(input)) return;
+
+			const { fullString, uniqueWords } = segmentAndConvert(input);
+			document.getElementById('fullJyutping').innerHTML = fullString || '（暫無對應拼音）';
+			
+			const wordListSection = document.getElementById('wordListSection');
+			wordListSection.style.display = 'block';
+			
+			const tbody = document.getElementById('wordTableBody');
+			tbody.innerHTML = '';
+			
+			if (uniqueWords.size === 0) {
+				tbody.innerHTML = '<tr><td colspan="2">無詞組數據</td></tr>';
+			} else {
+				const sortedWords = Array.from(uniqueWords.entries()).sort((a, b) => b[0].length - a[0].length);
+				for (let [word, data] of sortedWords) {
+					const row = tbody.insertRow();
+					const cellWord = row.insertCell(0);
+					const cellPinyinList = row.insertCell(1);
+					
+					cellWord.textContent = word;
+					
+                    data.pinyinList.forEach(p => {
+                        const chip = document.createElement('span');
+                        chip.className = 'jyutping-chip';
+                        chip.textContent = p;
+                        cellPinyinList.appendChild(chip);
+                    });
+				}
+			}
+			
+			window.currentFullText = input;
+			const noteDiv = document.getElementById('noteArea');
+			noteDiv.innerHTML = fullString.includes('*') ? '💡 部分字詞未收錄拼音（*標記）。' : '💡 複音字表將顯示所有可能的粵語發音。';
+		}
+
+		function clearAll() {
+			document.getElementById('userInput').value = '';
+			document.getElementById('fullJyutping').innerHTML = '等待輸入';
+			document.getElementById('wordListSection').style.display = 'none';
+			window.currentFullText = '';
+		}
+
+		function playFullSentence() {
+			if (window.currentFullText) speak(window.currentFullText);
+		}
+
+		window.addEventListener('DOMContentLoaded', async () => {
+			document.getElementById('queryBtn').disabled = true;
+			await loadDict();
+			document.getElementById('queryBtn').addEventListener('click', query);
+			document.getElementById('clearBtn').addEventListener('click', clearAll);
+			document.getElementById('playFullBtn').addEventListener('click', playFullSentence);
+			
+			const textarea = document.getElementById('userInput');
+			textarea.addEventListener('keydown', (e) => {
+				if ((e.ctrlKey || e.metaKey || e.altKey) && e.key === 'Enter') {
+					e.preventDefault();
+					query();
+				}
+			});
+		});
+	</script>
+</body>
+</html>

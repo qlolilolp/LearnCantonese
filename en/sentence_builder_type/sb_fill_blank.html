@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <script src="../../components/title.js"></script>
+    <link rel="icon" href="../../logo.png" type="image/png">
+    <style>
+        body { font-family: "Comic Sans MS", "標楷體", serif; background-color: #fffcf8; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        .container { max-width: 800px; width: 100%; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .q-item { margin-bottom: 20px; font-size: 18px; line-height: 1.6; }
+        input { border: none; border-bottom: 2px solid #ff6b00; font-size: 18px; width: 100px; text-align: center; outline: none; background: transparent; }
+        .back-btn { background: #666; color: white; text-decoration: none; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; }
+        .submit-btn { background: #ff6b00; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 18px; width: 100%; }
+        .submit-btn:hover { background: #e66000; }
+        #result-section { display: none; text-align: center; margin-top: 40px; padding: 20px; border-top: 2px dashed #eee; }
+        .view-results-btn { background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer; font-size: 18px; margin-top: 10px; }
+        .loading { font-style: italic; color: #999; }
+        .translation-hint { color: #666; font-size: 15px; margin-top: 4px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../sentence_builder.html" class="back-btn">← Back</a>
+        <h1>📝 Fill in the Blank</h1>
+        <div id="quiz"><p class="loading">Loading questions...</p></div>
+        <button class="submit-btn" id="check-btn" onclick="checkAnswers()" style="display:none;">Check Answers</button>
+
+        <div id="result-section">
+            <p id="final-score-text" style="font-size: 20px; font-weight: bold;"></p>
+            <button class="view-results-btn" onclick="saveAndGo()">See My Results</button>
+        </div>
+    </div>
+
+    <script>
+        let selected = [];
+        let finalScore = 0;
+        
+        const currentLang = document.documentElement.lang;
+
+        async function loadQuestions() {
+            try {
+                const response = await fetch('../../data/fill_blank.tsv');
+                const data = await response.text();
+                
+                const lines = data.trim().split('\n');
+                const pool = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split('\t');
+                    if (cols.length >= 5) {
+                        const qText = cols[0];
+                        const answer = cols[1];
+                        
+                        let translation = "";
+                        if (currentLang === "zh-Hant") {
+                            translation = cols[3];
+                        } else if (currentLang === "zh-Hans") {
+                            translation = cols[4];
+                        } else {
+                            translation = cols[2];
+                        }
+
+                        pool.push({ 
+                            text: qText.trim(), 
+                            ans: answer.trim(), 
+                            hint: translation.trim() 
+                        });
+                    }
+                }
+
+                selected = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
+                
+                renderQuiz();
+                document.getElementById('check-btn').style.display = 'block';
+            } catch (error) {
+                console.error("Error loading TSV:", error);
+                document.getElementById('quiz').innerHTML = "<p style='color:red'>Failed to load questions.</p>";
+            }
+        }
+
+        function renderQuiz() {
+            document.getElementById('quiz').innerHTML = selected.map((q, i) => `
+                <div class="q-item">
+                    <strong>${i+1}. ${q.text}</strong>
+                    <span class="translation-hint">(${q.hint})</span>
+                    <div>
+                        Answer: <input type="text" id="in-${i}" autocomplete="off">
+                        <span id="res-${i}"></span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.checkAnswers = () => {
+            let score = 0;
+            selected.forEach((q, i) => {
+                const inputField = document.getElementById(`in-${i}`);
+                const userAns = inputField.value.trim();
+                const display = document.getElementById(`res-${i}`);
+                
+                if (userAns === q.ans) {
+                    score += 10;
+                    display.innerHTML = "<span style='color:green'> ✅</span>";
+                } else {
+                    display.innerHTML = `<span style='color:red'> ❌ (Correct: ${q.ans})</span>`;
+                }
+                inputField.disabled = true;
+            });
+
+            finalScore = score;
+            document.getElementById('check-btn').disabled = true;
+            document.getElementById('final-score-text').innerText = `Your Score: ${finalScore} / 100`;
+            document.getElementById('result-section').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        };
+
+        function saveAndGo() {
+            let records = JSON.parse(localStorage.getItem('All_Quiz_Records')) || [];
+            records.push({
+                type: 'Fill in the Blank Quiz',
+                score: finalScore,
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('All_Quiz_Records', JSON.stringify(records));
+            window.location.href = "../results.html";
+        }
+
+        loadQuestions();
+    </script>
+</body>
+</html>

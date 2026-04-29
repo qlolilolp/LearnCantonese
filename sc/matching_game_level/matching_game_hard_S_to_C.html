@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../../components/title.js"></script>
+    <link rel="icon" href="../../logo.png" type="image/png">
+    <style>
+        :root { --primary-orange: #ff6b00; --bg-color: #fffcf8; }
+        body { font-family: "Comic Sans MS", "標楷體", serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
+        .game-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 900px; width: 95%; perspective: 1000px; }
+        .card { aspect-ratio: 1/1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.5s; }
+        .card.flipped, .card.matched { transform: rotateY(180deg); }
+        .card.matched { opacity: 0.4; cursor: default; }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); font-size: 15px; font-weight: bold; text-align: center; }
+        .card-front { background: linear-gradient(135deg, #ff8c00, #ff4500); color: white; font-size: 24px; }
+        .card-back { background: white; transform: rotateY(180deg); border: 2px solid var(--primary-orange); flex-direction: column; padding: 5px; box-sizing: border-box; }
+        .btn { padding: 12px 30px; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; background: #333; color: white; margin: 20px 5px; text-decoration: none; display: inline-block; }
+        .stats { margin-bottom: 15px; font-size: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>声音↔意思 (困难)</h1>
+    <div class="stats">次数: <span id="moves">0</span> | 匹配: <span id="matches">0</span>/10</div>
+    <div class="game-grid" id="gameGrid"></div>
+    <div class="controls">
+        <button class="btn" onclick="initGame()">重新开始游戏</button>
+        <a href="../matching_game.html" class="btn" style="background:var(--primary-orange)">返回</a>
+    </div>
+
+    <script>
+        function speak(t) { let u = new SpeechSynthesisUtterance(t); u.lang = 'zh-HK'; window.speechSynthesis.speak(u); }
+
+        const allWords = [
+            {c:"你好",s:"nei5 hou2"}, {c:"唔该",s:"m4 goi1"}, {c:"早晨",s:"zou2 san4"}, {c:"多谢",s:"do1 ze6"}, {c:"再见",s:"zoi3 gin3"},
+			{c:"食饭",s:"sik6 faan6"}, {c:"对唔住",s:"deoi3 m4 zyu6"}, {c:"几多钱",s:"gei2 do1 cin2"}, {c:"买单",s:"maai5 daan1"}, {c:"唔紧要",s:"m4 gan2 jiu3"},
+			{c:"好食",s:"hou2 sik6"}, {c:"巴士",s:"baa1 si2"}, {c:"的士",s:"dik1 si2"}, {c:"饮茶",s:"jam2 caa4"}, {c:"点心",s:"dim2 sam1"},
+			{c:"香港",s:"hoeng1 gong2"}, {c:"地铁",s:"dei6 tit3"}, {c:"厕所",s:"ci3 so2"}, {c:"边度",s:"bin1 dou6"}, {c:"乜嘢",s:"mat1 je5"},
+			{c:"知道",s:"zi1 dou6"}, {c:"钟意",s:"zung1 ji3"}, {c:"买嘢",s:"maai5 je5"}, {c:"今日",s:"gam1 jat6"}, {c:"听日",s:"ting1 jat6"},
+			{c:"琴日",s:"kam4 jat6"}, {c:"医生",s:"ji1 sang1"}, {c:"老师",s:"lou5 si1"}, {c:"学生",s:"hok6 sang1"}, {c:"公司",s:"gung1 si1"},
+			{c:"返工",s:"faan1 gung1"}, {c:"收工",s:"sau1 gung1"}, {c:"朋友",s:"pang4 jau5"}, {c:"屋企",s:"uk1 kei2"}, {c:"靓",s:"leng3"},
+			{c:"开心",s:"hoi1 sam1"}, {c:"辛苦",s:"san1 fu2"}, {c:"麻烦",s:"maa4 faan4"}, {c:"快啲",s:"faai3 di1"}, {c:"慢啲",s:"maan6 di1"},
+			{c:"等阵",s:"dang2 zan6"}, {c:"借过",s:"ze3 gwo3"}, {c:"几多",s:"gei2 do1"}, {c:"苹果",s:"ping4 gwo2"}, {c:"面包",s:"min6 baau1"},
+			{c:"咖啡",s:"gaa3 fe1"}, {c:"冻水",s:"dung3 seoi2"}, {c:"啤酒",s:"be1 zau2"}, {c:"电影",s:"din6 jing2"}, {c:"睇戏",s:"tai2 hei3"},
+			{c:"行街",s:"haang4 gaai1"}, {c:"热闹",s:"jit6 naau6"}, {c:"方便",s:"fong1 bin6"}, {c:"准备",s:"zeon2 bei6"}, {c:"恭喜",s:"gung1 hei2"},
+			{c:"身体",s:"san1 tai2"}, {c:"健康",s:"gin6 hong1"}, {c:"快乐",s:"faai3 lok6"}, {c:"成功",s:"sing4 gung1"}, {c:"明白",s:"ming4 baak6"}
+        ];
+
+        let flippedCards = [], matchedCount = 0, moves = 0, lockBoard = false;
+
+        function initGame() {
+            const grid = document.getElementById('gameGrid'); grid.innerHTML = '';
+            flippedCards = []; matchedCount = 0; moves = 0; lockBoard = false;
+            document.getElementById('moves').innerText = '0'; document.getElementById('matches').innerText = '0';
+            let pool = [...allWords].sort(() => Math.random() - 0.5).slice(0, 10);
+            let items = [];
+            pool.forEach((w, i) => {
+                items.push({ type: 'char', val: w.c, id: i });
+                items.push({ type: 'sound', val: w.s, char: w.c, id: i });
+            });
+            items.sort(() => Math.random() - 0.5).forEach(item => {
+                const card = document.createElement('div'); card.className = 'card'; card.dataset.id = item.id;
+                card.innerHTML = `<div class="card-face card-front">?</div>
+                    <div class="card-back card-face">${item.type==='char' ? item.val : '🔊<br><small>'+item.val+'</small>'}</div>`;
+                card.onclick = () => {
+                    if(lockBoard || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                    
+                    if(item.type === 'sound') speak(item.char);
+
+                    card.classList.add('flipped'); flippedCards.push(card);
+                    if(flippedCards.length === 2) {
+                        lockBoard = true; moves++; document.getElementById('moves').innerText = moves;
+                        if(flippedCards[0].dataset.id === flippedCards[1].dataset.id) {
+                            setTimeout(() => {
+                                flippedCards.forEach(c => c.classList.add('matched'));
+                                matchedCount++; document.getElementById('matches').innerText = matchedCount;
+                                flippedCards = []; lockBoard = false;
+                                if(matchedCount === 10) setTimeout(() => alert("太棒了!"), 300);
+                            }, 800);
+                        } else {
+                            setTimeout(() => {
+                                flippedCards.forEach(c => c.classList.remove('flipped'));
+                                flippedCards = []; lockBoard = false;
+                            }, 1000);
+                        }
+                    }
+                };
+                grid.appendChild(card);
+            });
+        }
+        initGame();
+    </script>
+</body>
+</html>

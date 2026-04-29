@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../components/title.js"></script>
+    <link rel="icon" href="../logo.png" type="image/png">
+	<link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root {
+            --primary-orange: #ff6b00;
+            --primary-green: #28a745;
+            --border-color: #e0e0e0;
+            --bg-container: #ffffff;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 120px 0 0 0; 
+            min-height: 100vh;
+        }
+
+        .main-container {
+            width: 90%;
+            max-width: 1100px;
+            background: var(--bg-container);
+            padding: 40px;
+            border-radius: 16px;
+			box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            box-sizing: border-box;
+        }
+
+        .section-title {
+            display: block;
+            font-size: 18px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 15px;
+        }
+
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        input[type="radio"] { display: none; }
+
+        .card-inner {
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+        }
+
+        .card-inner:hover {
+            background-color: #fafafa;
+            border-color: #bbb;
+            transform: translateY(-2px);
+        }
+
+        .diff-group input[type="radio"]:checked + .card-inner {
+            border: 2px solid var(--primary-green);
+            background-color: rgba(40, 167, 69, 0.05);
+        }
+
+        .mode-group input[type="radio"]:checked + .card-inner {
+            border: 2px solid var(--primary-orange);
+            background-color: rgba(255, 107, 0, 0.05);
+        }
+
+        .main-label { font-weight: bold; font-size: 18px; display: block; }
+        .sub-label { font-size: 14px; color: #888; margin-top: 6px; }
+
+        .start-btn {
+            background: linear-gradient(to right, #ff6b00, #ff4500);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .start-btn:hover { filter: brightness(1.1); }
+        .start-btn:active { transform: scale(0.98); }
+        
+        @media (max-width: 600px) { .radio-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+	<script src="../components/header.js"></script>
+	<script src="../components/footer.js"></script>
+    <div class="header-section">
+        <h1>Sound & Meaning Matching</h1>
+        <p>Choose your preferred mode and challenge yourself!</p>
+    </div>
+
+    <div class="main-container">
+        <div class="diff-group">
+            <label class="section-title">Difficulty Level</label>
+            <div class="radio-grid">
+                <label>
+                    <input type="radio" name="d" value="easy" checked>
+                    <div class="card-inner">
+                        <span class="main-label">Easy</span>
+                        <span class="sub-label">Focus on single words</span>
+                    </div>
+                </label>
+                <label>
+                    <input type="radio" name="d" value="hard">
+                    <div class="card-inner">
+                        <span class="main-label">Hard</span>
+                        <span class="sub-label">Natural speed sentences</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="mode-group">
+            <label class="section-title">Select Game Mode</label>
+            <div class="radio-grid">
+                <label>
+                    <input type="radio" name="m" value="sound_char" checked>
+                    <div class="card-inner">
+                        <span class="main-label">Sound ↔ Character</span>
+                        <span class="sub-label">Match pinyin with Chinese characters</span>
+                    </div>
+                </label>
+                <label>
+                    <input type="radio" name="m" value="sound_eng">
+                    <div class="card-inner">
+                        <span class="main-label">Sound ↔ English</span>
+                        <span class="sub-label">Match pinyin with English meanings</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="goToGame()">Start Game</button>
+    </div>
+    <script>
+        function goToGame() {
+            const mode = document.querySelector('input[name="m"]:checked').value;
+            const diff = document.querySelector('input[name="d"]:checked').value;
+
+            if (mode === "sound_char") {
+                if (diff === "easy") {
+                    window.location.href = "./matching_game_level/matching_game_easy_S_to_C.html";
+                } else {
+                    window.location.href = "./matching_game_level/matching_game_hard_S_to_C.html";
+                }
+            } else if (mode === "sound_eng") {
+                if (diff === "easy") {
+                    window.location.href = "./matching_game_level/matching_game_easy_S_to_E.html";
+                } else {
+                    window.location.href = "./matching_game_level/matching_game_hard_S_to_E.html";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
