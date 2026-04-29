@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../components/title.js"></script>
+    <link rel="icon" href="../logo.png" type="image/png">
+	<link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root {
+            --primary-orange: #ff6b00;
+            --primary-blue: #007bff;
+            --border-color: #e0e0e0;
+            --bg-container: #ffffff;
+        }
+       
+        body { 
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 120px 0 0 0;
+			min-height: 100vh;
+		}
+        .main-container { 
+			width: 90%; 
+			max-width: 1100px; 
+			background: var(--bg-container); 
+			padding: 30px 40px; border-radius: 
+			16px; box-shadow: 0 5px 10px rgba(0,0,0,0.08); 
+			display: flex; 
+			flex-direction: column; 
+			gap: 20px; box-sizing: border-box;
+		}
+        .section-title { 
+			font-size: 18px; 
+			font-weight: bold; 
+			color: #333; 
+			margin-bottom: 5px; 
+		}
+        .question-grid { 
+			display: grid; 
+			grid-template-columns: repeat(2, 1fr); 
+			gap: 20px; }
+			input[type="radio"] { 
+			display: none; 
+		}
+        .card-inner { 
+			border: 1.5px solid var(--border-color); 
+			border-radius: 12px; 
+			padding: 25px; 
+			cursor: pointer; 
+			transition: all 0.2s ease; 
+			background: white; 
+			display: flex; 
+			flex-direction: column; 
+			gap: 8px; 
+			position: relative; 
+		}
+        .card-inner:hover { 
+			border-color: #bbb; 
+			background-color: #f9f9f9; 
+		}
+		input[type="radio"]:checked + .card-inner { 
+			border: 2px solid var(--primary-orange); 
+			background-color: #fff9f5; 
+		}
+        .icon { 
+			font-size: 24px; 
+			margin-bottom: 5px; 
+		}
+        .main-label { 
+			font-weight: bold; 
+			font-size: 17px; 
+			color: #333; 
+		}
+        .sub-label { 
+			font-size: 14px; 
+			color: #777;
+			line-height: 1.4; 
+		}
+        .start-btn { 
+			background: linear-gradient(to right, #ff6b00, #ff4500); 
+			color: white; 
+			border: none; 
+			padding: 18px; 
+			border-radius: 12px; 
+			font-size: 18px; 
+			font-weight: bold; 
+			cursor: pointer; 
+			margin-top: 10px; 
+			box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3); 
+			transition: all 0.2s; 
+		}
+        .start-btn:hover { 
+			opacity: 0.9; transform: translateY(-1px); 
+		}
+     
+    </style>
+</head>
+<body>
+	<script src="../components/header.js"></script>
+	<script src="../components/footer.js"></script>
+	
+    <div class="header-section">
+        <h2>Sentence Builder</h2>
+        <p>Choose a question type to start practicing</p>
+    </div>
+    <div class="main-container">
+        <div class="section-title">Select Question Type</div>
+        <div class="question-grid">
+            <label>
+                <input type="radio" name="q-type" value="word_order" checked>
+                <div class="card-inner"><span class="icon">🔄</span><span class="main-label">Word Order</span><span class="sub-label">Arrange words to form correct sentences</span></div>
+            </label>
+            <label>
+                <input type="radio" name="q-type" value="fill_blank">
+                <div class="card-inner"><span class="icon">📝</span><span class="main-label">Fill in the Blank</span><span class="sub-label">Complete sentences with the correct word</span></div>
+            </label>
+            <label>
+                <input type="radio" name="q-type" value="mc">
+                <div class="card-inner"><span class="icon">✅</span><span class="main-label">Multiple Choice</span><span class="sub-label">Choose the correct answer from options</span></div>
+            </label>
+        </div>
+        <button class="start-btn" onclick="goToPractice()">Start Practice</button>
+    </div>
+    <script>
+        function goToPractice() {
+            const type = document.querySelector('input[name="q-type"]:checked').value;
+            if (type === "translation") {
+                alert("This mode is under development; please try other modes first!");
+            } else {
+                window.location.href = "./sentence_builder_type/sb_" + type + ".html";
+            }
+        }
+    </script>
+</body>
+</html>
