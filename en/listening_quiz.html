@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../components/title.js"></script>
+    <link rel="icon" href="../logo.png" type="image/png">
+	<link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root {
+            --primary-orange: #ff6b00;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --bg-container: #ffffff;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 120px 0 0 0; 
+            min-height: 100vh;
+        }
+
+        .quiz-header {
+            width: 90%; max-width: 1100px; background: #fff;
+            padding: 25px 40px; border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-sizing: border-box;
+        }
+
+        .quiz-info { flex: 1; }
+        .quiz-info h2 { margin: 0; color: #002b5b; font-size: 24px; }
+        .quiz-info p { margin: 5px 0 0 0; color: #666; }
+        
+        .score-board { text-align: right; font-weight: bold; min-width: 150px; }
+        .score-board span { color: var(--primary-orange); font-size: 24px; }
+
+        .progress-container { width: 100%; height: 8px; background: #eee; border-radius: 4px; margin-top: 15px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary-orange); width: 0%; transition: width 0.3s; }
+
+        .main-container {
+            width: 90%; max-width: 1100px; background: var(--bg-container);
+            padding: 40px; border-radius: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; gap: 30px;
+            box-sizing: border-box;
+            margin-bottom: 50px;
+        }
+
+        .audio-section {
+            background: linear-gradient(135deg, #ff8c00, #ff4500);
+            border-radius: 15px; padding: 40px;
+            text-align: center; color: white; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .audio-section:hover { transform: scale(1.01); }
+        .audio-section .icon { font-size: 50px; display: block; margin-bottom: 10px; }
+
+        .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .option-btn {
+            padding: 25px; border: 2px solid var(--border-color); border-radius: 12px;
+            background: white; font-size: 22px; font-weight: bold;
+            cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .option-btn:hover:not(.disabled) { border-color: #bbb; background: #f9f9f9; }
+
+        .option-btn.correct { background-color: #d4edda !important; border-color: var(--correct-green) !important; color: var(--correct-green); }
+        .option-btn.wrong { background-color: #f8d7da !important; border-color: var(--wrong-red) !important; color: var(--wrong-red); }
+
+        .footer-action { text-align: center; margin-top: 10px; }
+        .next-btn {
+            width: 100%; padding: 18px; border: none; border-radius: 12px;
+            background: #ccc; color: white; font-size: 18px; font-weight: bold;
+            cursor: not-allowed; transition: 0.3s;
+        }
+        .next-btn.active { background: #000; cursor: pointer; }
+
+        @media (max-width: 600px) { 
+            .options-grid { grid-template-columns: 1fr; } 
+            .quiz-header { flex-direction: column; text-align: center; }
+            .score-board { text-align: center; margin-top: 15px; }
+        }
+    </style>
+</head>
+<body>
+	<script src="../components/header.js"></script>
+	<script src="../components/footer.js"></script>
+    <div class="quiz-header">
+        <div class="quiz-info">
+            <h2>Listening Comprehension Quiz</h2>
+            <p>Listen carefully and select the correct Chinese characters</p>
+            <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+        <div class="score-board">
+            Score: <span id="score">0</span><br>
+            Question: <span id="qNum">1</span> / <span id="totalQ">20</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <p style="color:#666; margin:0;">Listen to the audio:</p>
+        
+        <div class="audio-section" onclick="playCurrentAudio()">
+            <span class="icon">🔊</span>
+            <strong>Click to Play Audio</strong>
+            <p style="margin:5px 0 0 0; opacity:0.8; font-size:14px;">You can replay as many times as you need</p>
+        </div>
+
+        <div class="options-grid" id="optionsGrid"></div>
+
+        <div class="footer-action">
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Select an Answer</button>
+        </div>
+    </div>
+    <script>
+        // 擴充至 20 題的數據
+        const questionsData = [
+            { text: "你好", options: ["你好", "早晨", "再見", "多謝"], answer: "你好" },
+            { text: "多謝", options: ["唔該", "多謝", "對唔住", "冇問題"], answer: "多謝" },
+            { text: "早晨", options: ["晚安", "早晨", "聽日見", "好耐冇見"], answer: "早晨" },
+            { text: "對唔住", options: ["唔緊要", "對唔住", "唔該", "好行"], answer: "對唔住" },
+            { text: "再見", options: ["拜拜", "再見", "聽日見", "慢走"], answer: "再見" },
+            { text: "幾多錢", options: ["幾多錢", "邊度", "乜嘢", "邊個"], answer: "幾多錢" },
+            { text: "食飯", options: ["飲茶", "食飯", "行街", "睇戲"], answer: "食飯" },
+            { text: "買單", options: ["買單", "攞錢", "找錢", "收銀"], answer: "買單" },
+            { text: "水", options: ["汽水", "咖啡", "凍檸茶", "水"], answer: "水" },
+            { text: "好食", options: ["好靚", "好睇", "好食", "好聽"], answer: "好食" },
+            { text: "邊度", options: ["邊度", "呢度", "嗰度", "邊個"], answer: "邊度" },
+            { text: "的士", options: ["巴士", "的士", "小巴", "地鐵"], answer: "的士" },
+            { text: "一二三四五", options: ["一二三四五", "六七八九十", "二四六八十", "一三五七九"], answer: "一二三四五" },
+            { text: "點心", options: ["點心", "雲吞麵", "叉燒包", "燒鵝"], answer: "點心" },
+            { text: "好貴", options: ["好平", "好貴", "好抵", "好大"], answer: "好貴" },
+            { text: "唔該借借", options: ["唔該借借", "對唔住", "借過呀", "唔好意思"], answer: "唔該借借" },
+            { text: "幾多點", options: ["幾多點", "幾多號", "幾多歲", "幾多錢"], answer: "幾多點" },
+            { text: "今日", options: ["聽日", "琴日", "今日", "後日"], answer: "今日" },
+            { text: "歡迎", options: ["歡迎", "光臨", "多謝", "再見"], answer: "歡迎" },
+            { text: "冇問題", options: ["冇問題", "唔知", "唔係", "唔識"], answer: "冇問題" }
+        ];
+
+        let questions = [];
+        let currentIdx = 0;
+        let score = 0;
+        let canAnswer = true;
+
+        // 粵語語音函數
+        function speak(text) {
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-HK';
+            utterance.rate = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 播放當前題目嘅語音
+        function playCurrentAudio() {
+            const text = questions[currentIdx].text;
+            speak(text);
+            console.log("Playing speech for: " + text);
+        }
+
+        // 洗牌函數：讓題目隨機出現
+        function shuffleQuestions() {
+            questions = [...questionsData].sort(() => Math.random() - 0.5);
+        }
+
+        function initQuiz() {
+            canAnswer = true;
+            const q = questions[currentIdx];
+            
+            // 更新狀態顯示
+            document.getElementById('qNum').innerText = currentIdx + 1;
+            document.getElementById('totalQ').innerText = questions.length;
+            document.getElementById('progressBar').style.width = ((currentIdx + 1) / questions.length * 100) + "%";
+            
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = ''; // 清空選項
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(btn, opt);
+                grid.appendChild(btn);
+            });
+
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.classList.remove('active');
+            nextBtn.innerText = "Select an Answer";
+            nextBtn.style.cursor = "not-allowed";
+
+            // 已移除自動播放邏輯，現在僅等待點擊
+        }
+
+        function checkAnswer(btn, selected) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const correct = questions[currentIdx].answer;
+            const nextBtn = document.getElementById('nextBtn');
+
+            // 禁用所有按鈕防止重複點擊
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.classList.add('disabled'));
+
+            if (selected === correct) {
+                btn.classList.add('correct');
+                score += 5; // 20題，每題5分，總分100
+                document.getElementById('score').innerText = score;
+            } else {
+                btn.classList.add('wrong');
+                // 顯示正確答案
+                allBtns.forEach(b => {
+                    if (b.innerText === correct) b.classList.add('correct');
+                });
+            }
+
+            nextBtn.classList.add('active');
+            nextBtn.innerText = currentIdx === questions.length - 1 ? "Finish Quiz" : "Next Question";
+            nextBtn.style.cursor = "pointer";
+        }
+
+        function nextQuestion() {
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn.classList.contains('active')) {
+                currentIdx++;
+                if (currentIdx < questions.length) {
+                    initQuiz();
+                } else {
+                    alert("Quiz Finished! \nFinal Score: " + score + " / 100");
+                    location.reload(); 
+                }
+            }
+        }
+
+        // 啟動測驗
+        shuffleQuestions();
+        initQuiz();
+    </script>
+</body>
+</html>

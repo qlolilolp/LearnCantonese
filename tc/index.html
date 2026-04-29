@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../components/title.js"></script>
+    <link rel="icon" href="../logo.png" type="image/png">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            max-width: 1200px;
+            align-self: center;
+            width: 100%;
+            padding: 40px 20px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-top: -50px;
+            margin-bottom: 48px;
+        }
+
+        .welcome-section h2 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .welcome-section p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .bento-card {
+            background: #fff;
+            border-radius: 32px;
+            padding: 28px 24px;
+            text-decoration: none;
+            color: #1e293b;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f7;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bento-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--primary-orange, #f97316);
+            box-shadow: 0 20px 30px -12px rgba(249,115,22,0.12);
+        }
+
+        .record-bento:hover {
+            border-color: var(--record-blue, #3b82f6);
+            box-shadow: 0 20px 30px -12px rgba(59,130,246,0.12);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .bento-icon {
+            font-size: 52px;
+        }
+
+        .bento-badge {
+            font-size: 14px;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 40px;
+            color: #475569;
+        }
+
+        .bento-card h3 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0 0 12px 0;
+            letter-spacing: -0.3px;
+        }
+
+        .bento-card p {
+            color: #5b6e8c;
+            line-height: 1.5;
+            margin: 0 0 20px 0;
+            font-size: 15px;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary-orange, #f97316);
+        }
+
+        .record-bento .card-footer {
+            color: var(--record-blue, #3b82f6);
+        }
+
+        .bento-card:hover .card-footer {
+            gap: 10px;
+        }
+
+        @media (max-width: 680px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+            .bento-card {
+                padding: 24px 20px;
+            }
+            .bento-card h3 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+<script src="../components/header.js"></script>
+
+<div class="main-content">
+    <div class="welcome-section">
+        <h2>歡迎來到粵語學習平台！</h2>
+        <p>請選擇下方的一個模塊開始練習。</p>
+    </div>
+
+    <div class="bento-grid">
+        <a href="phonetic_chart.html" class="bento-card">
+            <div class="card-top">
+                <span class="bento-icon">📊</span>
+                <span class="bento-badge">聲母 · 韻母 · 聲調</span>
+            </div>
+            <h3>拼音表</h3>
+            <p>掌握聲母、韻母及粵語六個聲調，附帶原聲語音支援。</p>
+            <div class="card-footer">立即探索 →</div>
+        </a>
+
+        <a href="matching_game.html" class="bento-card">
+            <div class="card-top">
+                <span class="bento-icon">🎮</span>
+                <span class="bento-badge">記憶 · 聽音辨位</span>
+            </div>
+            <h3>造句練習</h3>
+            <p>透過將聲音與正確的漢字配對，挑戰並增強你的記憶力。</p>
+            <div class="card-footer">開始遊戲 →</div>
+        </a>
+
+        <a href="sentence_builder.html" class="bento-card">
+            <div class="card-top">
+                <span class="bento-icon">🧱</span>
+                <span class="bento-badge">詞序 · 填空 · 多選</span>
+            </div>
+            <h3>句子構造</h3>
+            <p>實踐粵語語法，練習道地的詞句排列與結構。</p>
+            <div class="card-footer">開始構建 →</div>
+        </a>
+
+        <a href="listening_quiz.html" class="bento-card">
+            <div class="card-top">
+                <span class="bento-icon">🎧</span>
+                <span class="bento-badge">聽力理解</span>
+            </div>
+            <h3>聽力測驗</h3>
+            <p>透過互動式聽力挑戰，測試你對粵語發音的敏感度。</p>
+            <div class="card-footer">接受挑戰 →</div>
+        </a>
+        
+        <a href="jyutping_lookup.html" class="bento-card">
+            <div class="card-top">
+                <span class="bento-icon">🔍</span>
+                <span class="bento-badge">粵拼 · 字典</span>
+            </div>
+            <h3>粵拼查詢</h3>
+            <p>搜尋並探索漢字的粵拼讀音與相關詳細解釋。</p>
+            <div class="card-footer">立即查詢 →</div>
+        </a>
+                
+        <a href="speech_practice.html" class="bento-card">
+            <div class="card-top">
+                <span class="bento-icon">🎙️</span>
+                <span class="bento-badge">口說練習</span>
+            </div>
+            <h3>口語練習</h3>
+            <p>利用即時語音識別技術，校正並提升你的發音準確度。</p>
+            <div class="card-footer">開始練習 →</div>
+        </a>
+
+        <a href="results.html" class="bento-card record-bento" style="grid-column: span 2;">
+            <div class="card-top">
+                <span class="bento-icon">🏆</span>
+                <span class="bento-badge">進度 · 統計</span>
+            </div>
+            <h3 style="color: var(--record-blue, #3b82f6);">我的紀錄</h3>
+            <p>查看你在各個學習模塊中的得分與統計。</p>
+            <div class="card-footer">進入儀表板 →</div>
+        </a>
+    </div>
+</div>
+
+<div style="margin-bottom: 15px;"></div>
+<script src="../components/footer.js"></script>
+</body>
+</html>

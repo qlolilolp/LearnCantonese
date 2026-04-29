@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <script src="../../components/title.js"></script>
+    <link rel="icon" href="../../logo.png" type="image/png">
+    <style>
+        :root { --primary-orange: #ff6b00; --bg-color: #fffcf8; }
+        body { font-family: "Comic Sans MS", "標楷體", serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; padding-top: 20px; }
+        .game-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 900px; width: 95%; perspective: 1000px; }
+        .card { aspect-ratio: 1/1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.5s; }
+        .card.flipped, .card.matched { transform: rotateY(180deg); }
+        .card.matched { opacity: 0.4; cursor: default; }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); font-size: 14px; font-weight: bold; text-align: center; padding: 5px; box-sizing: border-box; }
+        .card-front { background: linear-gradient(135deg, #ff8c00, #ff4500); color: white; font-size: 24px; }
+        .card-back { background: white; transform: rotateY(180deg); border: 2px solid var(--primary-orange); flex-direction: column; }
+        .btn { padding: 12px 30px; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; background: #333; color: white; margin: 20px 5px; text-decoration: none; display: inline-block; }
+        .stats { margin-bottom: 15px; font-size: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Sound ↔ English (Hard)</h1>
+    <div class="stats">Moves: <span id="moves">0</span> | Matches: <span id="matches">0</span>/10</div>
+    <div class="game-grid" id="gameGrid"></div>
+    <div class="controls">
+        <button class="btn" onclick="initGame()">Restart</button>
+        <a href="../matching_game.html" class="btn" style="background:var(--primary-orange)">Back</a>
+    </div>
+
+    <script>
+        function speak(t) { let u = new SpeechSynthesisUtterance(t); u.lang = 'zh-HK'; u.rate = 0.9; window.speechSynthesis.speak(u); }
+
+        const allWords = [
+            {c:"你好",s:"nei5 hou2",e:"Hello"}, {c:"唔該",s:"m4 goi1",e:"Excuse me"}, {c:"早晨",s:"zou2 san4",e:"Morning"}, {c:"多謝",s:"do1 ze6",e:"Thank you"}, {c:"再見",s:"zoi3 gin3",e:"Goodbye"},
+            {c:"食飯",s:"sik6 faan6",e:"Eat meal"}, {c:"對唔住",s:"deoi3 m4 zyu6",e:"Sorry"}, {c:"幾多錢",s:"gei2 do1 cin2",e:"How much"}, {c:"買單",s:"maai5 daan1",e:"Check please"}, {c:"唔緊要",s:"m4 gan2 jiu3",e:"Never mind"},
+            {c:"好食",s:"hou2 sik6",e:"Yummy"}, {c:"巴士",s:"baa1 si2",e:"Bus"}, {c:"的士",s:"dik1 si2",e:"Taxi"}, {c:"飲茶",s:"jam2 caa4",e:"Yum Cha"}, {c:"點心",s:"dim2 sam1",e:"Dim Sum"},
+            {c:"香港",s:"hoeng1 gong2",e:"HK"}, {c:"地鐵",s:"dei6 tit3",e:"MTR"}, {c:"廁所",s:"ci3 so2",e:"Toilet"}, {c:"邊度",s:"bin1 dou6",e:"Where"}, {c:"乜嘢",s:"mat1 je5",e:"What"},
+            {c:"知道",s:"zi1 dou6",e:"Know"}, {c:"鍾意",s:"zung1 ji3",e:"Like"}, {c:"買嘢",s:"maai5 je5",e:"Shopping"}, {c:"今日",s:"gam1 jat6",e:"Today"}, {c:"聽日",s:"ting1 jat6",e:"Tomorrow"},
+            {c:"琴日",s:"kam4 jat6",e:"Yesterday"}, {c:"醫生",s:"ji1 sang1",e:"Doctor"}, {c:"老師",s:"lou5 si1",e:"Teacher"}, {c:"學生",s:"hok6 sang1",e:"Student"}, {c:"公司",s:"gung1 si1",e:"Company"},
+            {c:"返工",s:"faan1 gung1",e:"Work"}, {c:"收工",s:"sau1 gung1",e:"Off work"}, {c:"朋友",s:"pang4 jau5",e:"Friend"}, {c:"屋企",s:"uk1 kei2",e:"Home"}, {c:"靚",s:"leng3",e:"Pretty"},
+            {c:"開心",s:"hoi1 sam1",e:"Happy"}, {c:"辛苦",s:"san1 fu2",e:"Tired"}, {c:"麻煩",s:"maa4 faan4",e:"Trouble"}, {c:"快啲",s:"faai3 di1",e:"Fast"}, {c:"慢啲",s:"maan6 di1",e:"Slow"},
+            {c:"等陣",s:"dang2 zan6",e:"Wait"}, {c:"借過",s:"ze3 gwo3",e:"Pass"}, {c:"幾多",s:"gei2 do1",e:"How many"}, {c:"蘋果",s:"ping4 gwo2",e:"Apple"}, {c:"麵包",s:"min6 baau1",e:"Bread"},
+            {c:"咖啡",s:"gaa3 fe1",e:"Coffee"}, {c:"凍水",s:"dung3 seoi2",e:"Ice water"}, {c:"啤酒",s:"be1 zau2",e:"Beer"}, {c:"電影",s:"din6 jing2",e:"Movie"}, {c:"睇戲",s:"tai2 hei3",e:"Watch film"},
+            {c:"行街",s:"haang4 gaai1",e:"Shopping"}, {c:"熱鬧",s:"jit6 naau6",e:"Busy"}, {c:"方便",s:"fong1 bin6",e:"Easy"}, {c:"準備",s:"zeon2 bei6",e:"Ready"}, {c:"恭喜",s:"gung1 hei2",e:"Congrats"},
+            {c:"身體",s:"san1 tai2",e:"Body"}, {c:"健康",s:"gin6 hong1",e:"Health"}, {c:"快樂",s:"faai3 lok6",e:"Joy"}, {c:"成功",s:"sing4 gung1",e:"Success"}, {c:"明白",s:"ming4 baak6",e:"Get it"}
+        ];
+
+        let flipped = [], matched = 0, lock = false, moves = 0;
+
+        function initGame() {
+            const grid = document.getElementById('gameGrid'); grid.innerHTML = '';
+            flipped = []; matched = 0; lock = false; moves = 0;
+            document.getElementById('moves').innerText = '0'; document.getElementById('matches').innerText = '0';
+            let pool = [...allWords].sort(() => Math.random() - 0.5).slice(0, 10);
+            let items = []; pool.forEach((w, i) => {
+                items.push({ type: 'eng', val: w.e, id: i });
+                items.push({ type: 'snd', val: w.s, chinese: w.c, id: i });
+            });
+            items.sort(() => Math.random() - 0.5).forEach(item => {
+                const card = document.createElement('div'); card.className = 'card'; card.dataset.id = item.id;
+                card.innerHTML = `<div class="card-face card-front">?</div>
+                    <div class="card-back card-face">${item.type==='eng' ? item.val : '🔊<br><small>'+item.val+'</small>'}</div>`;
+                
+                card.onclick = () => {
+                    if(lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                    
+                    // 修正：只有點擊拼音牌才發聲
+                    if(item.type === 'snd') speak(item.chinese);
+
+                    card.classList.add('flipped'); flipped.push(card);
+                    if(flipped.length === 2) {
+                        lock = true; moves++; document.getElementById('moves').innerText = moves;
+                        if(flipped[0].dataset.id === flipped[1].dataset.id) {
+                            setTimeout(() => {
+                                flipped.forEach(c => c.classList.add('matched'));
+                                matched++; document.getElementById('matches').innerText = matched;
+                                flipped = []; lock = false;
+                                if(matched === 10) setTimeout(() => alert("Excellent!"), 300);
+                            }, 800);
+                        } else {
+                            setTimeout(() => {
+                                flipped.forEach(c => c.classList.remove('flipped'));
+                                flipped = []; lock = false;
+                            }, 1000);
+                        }
+                    }
+                };
+                grid.appendChild(card);
+            });
+        }
+        initGame();
+    </script>
+</body>
+</html>
